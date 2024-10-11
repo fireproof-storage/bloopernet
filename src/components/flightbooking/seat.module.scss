@@ -1,0 +1,62 @@
+@import "./styles/_tools.respond_to.sass";
+
+.container {
+  margin: 314px 0 0;
+  padding: 0 10px 0;
+  background: #E7ECF5;
+  @include respond-to(small-down) {
+    margin-top: 20px;
+  }
+}
+
+.business {
+  display: grid;
+  grid-template-columns: repeat(2, 30px) 5px repeat(2, 30px) 5px repeat(2, 30px);
+  grid-gap: 15px;
+  padding: 10px;
+  padding: 15px;
+}
+
+.economy {
+  display: grid;
+  grid-template-columns: repeat(2, 30px) 5px repeat(4, 30px) 5px repeat(2, 30px);
+  grid-gap: 10px 5px;
+  padding: 40px 15px;
+}
+
+.button {
+  -webkit-appearance: none;
+  border: 0 none;
+  background: url(seat.svg) 50% 50% no-repeat;
+  display: block;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  opacity: 1;
+  cursor: not-allowed;
+  position: relative;
+  z-index: 2;  
+}
+
+button.button {
+  cursor: pointer;
+}
+
+button.button:focus,
+button.button:active,
+button.current {
+  opacity: 1;
+  outline: 0 none;
+  background: url(seat_active.svg) 50% 50% no-repeat;
+}
+
+.button_unavailable {
+  opacity: 0.6;
+}
+
+
+/* Add styles for the flight attendant if needed */
+.emoji {
+  transition: top 1s ease-in-out;
+  transition: left 1s ease-in-out;
+}

@@ -1,0 +1,173 @@
+@import "./styles/_tools.respond_to.sass";
+@import "./styles/_tools.fluid_scale.sass";
+
+.container {
+  display: grid;
+  grid-template-columns: 60px 36.95% 15.21% 1fr;
+  grid-template-rows: 60px 1fr 100px;
+  grid-template-areas:
+    "logo main plane plane"
+    "progress main plane plane"
+    ". . plane plane";
+  height: 100vh;
+  background-image: linear-gradient(180deg, #222E44 0%, #131C2B 100%);
+  @include respond-to(small-down) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 2fr 1fr 1fr;
+    grid-template-areas:
+      "plane"
+      "plane"
+      "main"
+      "footer";
+    .footer {
+      grid-area: footer;
+    }
+  }
+  @include respond-to(mobile-down) {
+    height: 85vh;
+  }
+}
+
+.logo {
+  grid-area: logo;
+  background: rgba(255,255,255,0.2) url(../../images/flightbooking/logo.svg) 50% 50% no-repeat;
+  @include respond-to(small-down) {
+    display: none;
+  }
+}
+
+.progress {
+  grid-area: progress;
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 100;
+  @include respond-to(small-down) {
+    display: none;
+  }
+} 
+
+.main {
+  grid-area: main;
+  padding: 0 30px;
+  position: relative;
+  z-index: 90;
+  h1 {
+    font-size: 21px;
+    color: #FFFFFF;
+    line-height: 60px;
+    margin: 0;
+    font-weight: normal;
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05);
+  }
+}
+
+.seatpicker {
+  grid-area: plane;
+  background: #fff;
+  padding: 30px 20px 0;
+  @include respond-to(small-down) {
+    padding: 10px 10px 0;
+    background: #E7ECF5;
+  }
+}
+
+.plane {
+  width: 350px;
+  height: 100%;
+  margin: 0 auto;
+  overflow-y: scroll;
+  height: 100%;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  .plane_bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: 50% 0;
+  }
+}
+
+.footer {
+  grid-column: 1 / 4;
+  grid-row: span 1 / 4;
+  position: relative;
+  z-index: 1;
+  background: #0E1521;
+  box-shadow: inset 60px 0 0 #FF930F;
+  display: flex;
+  justify-content: space-between;
+  padding: 25px 25px 25px 90px;
+  position: relative;
+  z-index: 100;
+  color: #fff;
+  button {
+    height: 50px;
+    background: #FF930F;
+    color: #fff;
+    -webkit-appearance: none;
+    border: 0;
+    display: block;
+    padding: 0 50px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+  }
+  button[disabled] {
+    background: #343d4c;
+    color: #0E1521;
+  }
+  @include respond-to(small-down) {
+    box-shadow: inset 15px 0 0 #FF930F;
+    padding-left: 30px;
+    padding-right: 15px;
+  }
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  h3,
+  p {
+    margin: 0;
+  }
+  h3 {
+    @include fluid-scale(font-size, $responsive_min, $responsive_max, 15px, 18px);
+  }
+  p {
+    @include fluid-scale(font-size, $responsive_min, $responsive_max, 13px, 16px);
+  }
+}
+
+.table {
+  width: 100%;
+  padding: 40px 0 0;
+  color: #fff;
+  th {
+    text-align: left;
+    height: 40px;
+    font-weight: normal;
+    color: rgba(255,255,255,0.6);
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  td {
+    height: 60px;
+    font-size: 19px;
+  }
+  th:first-child,
+  td:first-child {
+    width: 60%;
+  }
+  th:last-child,
+  td:last-child {
+    width: 40%;
+  }
+}
+

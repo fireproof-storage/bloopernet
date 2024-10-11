@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useFireproof } from 'use-fireproof';
 import { ConnectS3 } from '@fireproof/aws'
 import { ConnectPartyKit } from '@fireproof/partykit'
+import FlightBooking from './components/flightbooking/application';
 
-import PatternSet from './components/PatternSet';
-import TopControls from './components/TopControls';
-import LatencySlider from './components/LatencySlider';
-import { TimesyncProvider } from './TimesyncContext';
-import { initLatencyCompensation } from './audioUtils';
+
+// import TopControls from './components/TopControls';
+
 import './App.css';
 
 const partyCxs = new Map();
@@ -34,10 +33,13 @@ function partykitS3({ name, blockstore }, partyHost, refresh) {
 }
 
 
+// const attendant = '🧑‍✈️'
+
+
 function App() {
-  const instruments = ['Kick', 'Snare', 'Hi-hat', 'Tom', 'Clap'];
+
   const firstPathSegment = document.location.pathname.split('/')[1];  
-  const dbName = (import.meta.env.VITE_DBNAME || 'bloop-machine') + (firstPathSegment ? '-' + firstPathSegment : '');
+  const dbName = (import.meta.env.VITE_DBNAME || 'flt-sv') + (firstPathSegment ? '-' + firstPathSegment : '');
   
   const { database, useLiveQuery } = useFireproof(dbName);
 
@@ -75,22 +77,17 @@ function App() {
 
   const partyKitHost = import.meta.env.VITE_REACT_APP_PARTYKIT_HOST;
 
-  useEffect(() => {
-    initLatencyCompensation();
-  }, []);
 
   if (partyKitHost) {
-    const connection = partykitS3(database, partyKitHost);
-    console.log("Connection", connection);
+    // const connection = 
+    partykitS3(database, partyKitHost);
+    // console.log("Connection", connection);
   } else {
     console.warn("No connection");
   }
 
-  let beats = {};
-  const result = useLiveQuery('type', { key: 'beat' });
-  result.rows.forEach(row => {
-    beats[row.doc._id] = row.doc.isActive;
-  });
+  
+  const result = useLiveQuery('type', { key: 'seat' });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -108,15 +105,13 @@ function App() {
   }, []);
 
   return (
-    <TimesyncProvider partyKitHost={partyKitHost}>
       <div className={`app ${theme}`}>
-        <h1 className="app-title" {...longPressHandlers}>Bloopernet FP-808</h1>
-        <TopControls dbName={dbName} isExpert={isExpert} toggleTheme={toggleTheme} theme={theme} />
-        <PatternSet dbName={dbName} instruments={instruments} beats={beats} />
-        {/* <LatencySlider /> */}
-        <AppInfo />
+        {/* <h1 className="app-title" {...longPressHandlers}>On Time Arrival</h1> */}
+        {/* <TopControls dbName={dbName} isExpert={isExpert} toggleTheme={toggleTheme} theme={theme} /> */}
+        <FlightBooking />
+        {/* <AppInfo /> */}
       </div>
-    </TimesyncProvider>
+    
   );
 }
 
@@ -125,8 +120,7 @@ export default App;
 const AppInfo = () => (
   <footer>
     <p>
-      <a href="https://github.com/fireproof-storage/bloopernet">Fork us on GitHub</a>, try <a href="https://fireproof.storage">Fireproof</a>, and learn more about the <a href="https://bikeportland.org/2024/06/14/bloops-and-bleeps-ride-gives-cycling-new-sounds-387546">Bloopernet Project</a>.
+      <a href="https://github.com/fireproof-storage/bloopernet">Fork us on GitHub</a>, or try <a href="https://fireproof.storage">Fireproof</a>.
     </p>
-    <img src="/qr.png" width="200" style={{ marginTop: '10px' }} />
   </footer>
 );

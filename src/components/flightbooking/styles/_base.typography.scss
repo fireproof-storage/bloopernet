@@ -1,0 +1,16 @@
+* {
+  font-family: 'Inter', Inter, sans-serif;
+}
+
+h1 {
+  @include fluid-scale(font-size, $responsive_min, $responsive_max, 25px, 32px);
+}
+
+p {
+  @include fluid-scale(font-size, $responsive_min, $responsive_max, 16px, 17px);
+  line-height: 1.66;
+}
+
+.sc {
+  font-variant: small-caps;
+}

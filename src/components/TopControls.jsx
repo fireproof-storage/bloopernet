@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useTimesync } from '../TimesyncContext';
 import { useFireproof } from 'use-fireproof';
-import { setMasterMute, isMasterMuted, loadSilenceBuffer } from '../audioUtils';
 import './TopControls.css';
 
 const TopControls = ({ dbName, isExpert, toggleTheme, theme }) => {
-  const ts = useTimesync();
   const [tempBpm, setTempBpm] = useState(120);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(isMasterMuted()); // Start muted
+  const [muted, setMuted] = useState(true); // Start muted
   const timeoutRef = useRef(null);
   const { database, useLiveQuery } = useFireproof(dbName);
   // Fetch the current BPM document from the database
@@ -24,15 +21,8 @@ const TopControls = ({ dbName, isExpert, toggleTheme, theme }) => {
     }
   }, [bpmDoc]);
 
-  useEffect(() => {
-    // Set initial volume
-    setMasterMute(muted);
-  }, [muted]);
 
-  useEffect(() => {
-    // Load the silence buffer when the component mounts
-    loadSilenceBuffer();
-  }, []);
+
 
   const handleClear = async () => {
     try {
@@ -55,12 +45,9 @@ const TopControls = ({ dbName, isExpert, toggleTheme, theme }) => {
   // Remove the handleNuke function
 
   const updateBPMDoc = async (updates) => {
-    const timestamp = ts.now();
     const newBpmDoc = {
       ...bpmDoc,
-      ...updates,
-      lastChanged_ms: timestamp
-    };
+      ...updates    };
 
     try {
       if (bpmDoc) {
@@ -95,18 +82,18 @@ const TopControls = ({ dbName, isExpert, toggleTheme, theme }) => {
   };
 
   const togglePlay = useCallback(() => {
-    if (!ts) return;
-    const newPlayingState = !playing;
-    setPlaying(newPlayingState);
-    updateBPMDoc({ 
-      playing: newPlayingState, 
-      bpm: bpmDoc ? bpmDoc.bpm : tempBpm,
-      lastChanged_ms: ts.now() // Reset the start time when playing is toggled to true // todo: change to lastChanged_ms
-    });
-  }, [playing, bpmDoc, tempBpm, ts]);
+    // if (!ts) return;
+    // const newPlayingState = !playing;
+    // setPlaying(newPlayingState);
+    // updateBPMDoc({ 
+    //   playing: newPlayingState, 
+    //   bpm: bpmDoc ? bpmDoc.bpm : tempBpm,
+    //   lastChanged_ms: ts.now() // Reset the start time when playing is toggled to true // todo: change to lastChanged_ms
+    // });
+  }, [playing, bpmDoc, tempBpm]);
 
   useEffect(() => {
-    if (!ts) return;
+    // if (!ts) return;
     const timer = setTimeout(() => {
       if (!playing) {
         togglePlay();
@@ -114,12 +101,11 @@ const TopControls = ({ dbName, isExpert, toggleTheme, theme }) => {
     }, Math.floor(Math.random() * 4000) + 1000);
 
     return () => clearTimeout(timer);
-  }, [ts, togglePlay]);
+  }, [togglePlay]);
 
 
   const toggleMute = async () => {
     const newMutedState = !muted;
-    await setMasterMute(newMutedState);
     setMuted(newMutedState);
   };
 

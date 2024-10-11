@@ -1,0 +1,118 @@
+/*
+  |  Tiny  | Mobile |   Small   | iPad  |  Large  | Huge |
+  <       375      480         768     960      1,280    >
+  
+  <--------|        |           |       |         |      >
+  +respond-to(tiny)
+
+  <--------|--------|           |       |         |      >
+  +respond-to(mobile-down)
+  <        |--------|           |       |         |      >
+  +respond-to(mobile-only)
+  <        |--------|-----------|       |         |      >
+  +respond-to(mobile-to-small)
+
+  <--------|--------|-----------|       |         |      >
+  +respond-to(small-down)
+  |        |        |-----------|       |         |      >
+  +respond-to(small-only)
+  |        |        |-----------|-------|         |      >
+  +respond-to(small-to-ipad)
+  |        |        |-----------|-------|---------|      >
+  +respond-to(small-up)
+
+  <--------|--------|-----------|-------|         |      >
+  +respond-to(ipad-down)
+  |        |        |           |-------|         |      >
+  +respond-to(ipad-only)
+  |        |        |           |-------|---------|------>
+  +respond-to(ipad-up)
+
+  |        |        |           |       |---------|------>
+  +respond-to(large-up)
+  |        |        |           |       |         |------>
+  +respond-to(huge)
+
+  */
+
+$tiny_max: 374px
+
+$mobile_min: 375px
+$mobile_max: 479px
+
+$small_min: 480px
+$small_max: 767px
+
+$ipad_min: 768px
+$ipad_max: 959px
+
+$large_min: 960px
+$large_max: 1279px
+
+$huge_min: 1280px
+
+=respond-to($min: 0, $max: 0)
+  $type: type-of($min)
+  @if $type == string
+    @if $min == tiny
+      @media only screen and (max-width: $tiny_max)
+        @content
+
+    @else if $min == mobile-down
+      @media only screen and (max-width: $mobile_max)
+        @content
+    @else if $min == mobile-only
+      @media only screen and (min-width: $mobile_min) and (max-width: $mobile_max)
+        @content
+    @else if $min == mobile-to-small
+      @media only screen and (min-width: $mobile_min) and (max-width: $mobile_max)
+        @content
+
+    @else if $min == small-down
+      @media only screen and (max-width: $small_max)
+        @content
+
+    @else if $min == small-only
+      @media only screen and (min-width: $small_min) and (max-width: $small_max)
+        @content
+
+    @else if $min == small-to-ipad
+      @media only screen and (min-width: $small_min) and (max-width: $ipad_max)
+        @content
+
+    @else if $min == small-up
+      @media only screen and (min-width: $small_min)
+        @content
+
+    @else if $min == ipad-down
+      @media only screen and (max-width: $ipad_max)
+        @content
+
+    @else if $min == ipad-only
+      @media only screen and (min-width: $ipad_min) and (max-width: $ipad_max)
+        @content
+
+    @else if $min == ipad-up
+      @media only screen and (min-width: $ipad_min)
+        @content
+
+    @else if $min == large-up
+      @media only screen and (min-width: $large_min)
+        @content
+    
+    @else if $min == huge
+      @media only screen and (min-width: $huge_min)
+        @content
+
+    @else
+      @warn "Check your string - refer to _tools.respond-to.sass"
+  @else if $type == number
+    $query: "all" !default
+    @if $min != 0 and $max != 0
+      $query: "(min-width: #{$min}) and (max-width: #{$max})"
+    @else if $min != 0 and $max == 0
+      $query: "(min-width: #{$min})"
+    @else if $min == 0 and $max != 0
+      $query: "(max-width: #{$max})"
+    @media #{$query}
+      @content

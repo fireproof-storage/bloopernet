@@ -107,18 +107,18 @@ html, body, #root {
   min-height: var(--app-height);
 }
 
-.app {
+/* .app {
   flex: 1;
   width: 100%;
-  max-width: 1000px;
+  /* max-width: 1000px; */
   margin: auto;
   background-color: var(--bg-color);
   color: var(--text-color);
-  padding: 20px;
+  /* padding: 20px; */
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
   box-sizing: border-box;
-}
+} */
 
 .app-title {
   font-size: 2rem;

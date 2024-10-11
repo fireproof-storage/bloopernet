@@ -1,0 +1,131 @@
+$responsive_min: 375px
+$responsive_max: 1200px
+
+$size_scale_1_min: 5px
+$size_scale_2_min: 10px
+$size_scale_3_min: 15px
+$size_scale_4_min: 20px
+
+$size_scale_1_max: 10px
+$size_scale_2_max: 20px
+$size_scale_3_max: 40px
+$size_scale_4_max: 80px
+
+@function strip-unit($value)
+  @return $value / ($value * 0 + 1)
+
+=fluid-scale($properties, $min-vw, $max-vw, $min-value, $max-value)
+  @each $property in $properties
+    #{$property}: $min-value
+
+  @media screen and (min-width: $min-vw)
+    @each $property in $properties
+      #{$property}: calc(#{$min-value} + #{strip-unit($max-value - $min-value)} * (100vw - #{$min-vw}) / #{strip-unit($max-vw - $min-vw)})
+
+  @media screen and (min-width: $max-vw)
+    @each $property in $properties
+      #{$property}: $max-value
+
+=mt1
+  +fluid-scale(margin-top, $responsive_min, $responsive_max, $size_scale_1_min, $size_scale_1_max)
+=mt2
+  +fluid-scale(margin-top, $responsive_min, $responsive_max, $size_scale_2_min, $size_scale_2_max)
+=mt3
+  +fluid-scale(margin-top, $responsive_min, $responsive_max, $size_scale_3_min, $size_scale_3_max)
+=mt4
+  +fluid-scale(margin-top, $responsive_min, $responsive_max, $size_scale_4_min, $size_scale_4_max)
+
+=mb1
+  +fluid-scale(margin-bottom, $responsive_min, $responsive_max, $size_scale_1_min, $size_scale_1_max)
+=mb2
+  +fluid-scale(margin-bottom, $responsive_min, $responsive_max, $size_scale_2_min, $size_scale_2_max)
+=mb3
+  +fluid-scale(margin-bottom, $responsive_min, $responsive_max, $size_scale_3_min, $size_scale_3_max)
+=mb4
+  +fluid-scale(margin-bottom, $responsive_min, $responsive_max, $size_scale_4_min, $size_scale_4_max)
+
+=pt1
+  +fluid-scale(padding-top, $responsive_min, $responsive_max, $size_scale_1_min, $size_scale_1_max)
+=pt2
+  +fluid-scale(padding-top, $responsive_min, $responsive_max, $size_scale_2_min, $size_scale_2_max)
+=pt3
+  +fluid-scale(padding-top, $responsive_min, $responsive_max, $size_scale_3_min, $size_scale_3_max)
+=pt4
+  +fluid-scale(padding-top, $responsive_min, $responsive_max, $size_scale_4_min, $size_scale_4_max)
+
+=pb1
+  +fluid-scale(padding-bottom, $responsive_min, $responsive_max, $size_scale_1_min, $size_scale_1_max)
+=pb2
+  +fluid-scale(padding-bottom, $responsive_min, $responsive_max, $size_scale_2_min, $size_scale_2_max)
+=pb3
+  +fluid-scale(padding-bottom, $responsive_min, $responsive_max, $size_scale_3_min, $size_scale_3_max)
+=pb4
+  +fluid-scale(padding-bottom, $responsive_min, $responsive_max, $size_scale_4_min, $size_scale_4_max)
+
+=pl1
+  +fluid-scale(padding-left, $responsive_min, $responsive_max, $size_scale_1_min, $size_scale_1_max)
+=pl2
+  +fluid-scale(padding-left, $responsive_min, $responsive_max, $size_scale_2_min, $size_scale_2_max)
+=pl3
+  +fluid-scale(padding-left, $responsive_min, $responsive_max, $size_scale_3_min, $size_scale_3_max)
+=pl4
+  +fluid-scale(padding-left, $responsive_min, $responsive_max, $size_scale_4_min, $size_scale_4_max)
+
+=pr1
+  +fluid-scale(padding-right, $responsive_min, $responsive_max, $size_scale_1_min, $size_scale_1_max)
+=pr2
+  +fluid-scale(padding-right, $responsive_min, $responsive_max, $size_scale_2_min, $size_scale_2_max)
+=pr3
+  +fluid-scale(padding-right, $responsive_min, $responsive_max, $size_scale_3_min, $size_scale_3_max)
+=pr4
+  +fluid-scale(padding-right, $responsive_min, $responsive_max, $size_scale_4_min, $size_scale_4_max)
+
+
+.pb1
+  +pb1
+.pb2
+  +pb2
+.pb3
+  +pb3
+.pb4
+  +pb4
+
+.pt1
+  +pt1
+.pt2
+  +pt2
+.pt3
+  +pt3
+.pt4
+  +pt4
+
+.mb1
+  +mb1
+.mb2
+  +mb2
+.mb3
+  +mb3
+.mb4
+  +mb4
+
+.mt1
+  +mt1
+.mt2
+  +mt2
+.mt3
+  +mt3
+.mt4
+  +mb4
+
+
+=pa3
+  +pt3
+  +pb3
+  +pl3
+  +pr3
+
+=pa4
+  +pt4
+  +pb4
+  +pl4
+  +pr4
