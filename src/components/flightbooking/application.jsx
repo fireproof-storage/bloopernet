@@ -18,8 +18,8 @@ const FlightBooking = () => {
   const emojiRef = useRef(null);
   const seatContainerRef = useRef(null);
 
-  const firstPathSegment = document.location.pathname.split('/')[1];  
-  const dbName = (import.meta.env.VITE_DBNAME || 'flt-sv') + (firstPathSegment ? '-' + firstPathSegment : '');
+  const firstPathSegment = document.location.pathname.split('/')[1];
+  const dbName = (import.meta.env.VITE_DBNAME || 'flsv') + (firstPathSegment ? '-' + firstPathSegment : '');
 
   const { database, useLiveQuery } = useFireproof(dbName);
 
@@ -43,6 +43,9 @@ const FlightBooking = () => {
 
   const mostExpensiveItemEmojiPerSeat = useMemo(() => {
     return deliveredOrders.docs.reduce((acc, order) => {
+      if (order.createdAt && (order.createdAt < Date.now() - 1000 * 60 * 5)) {
+        return acc;
+      }
       const mostExpensiveBeverage = order.beverages.reduce((max, beverage) => beverage.price > max.price ? beverage : max, order.beverages[0]);
       const mostExpensiveFood = order.foods.reduce((max, food) => food.price > max.price ? food : max, order.foods[0]);
       const mostExpensiveItem = mostExpensiveBeverage.price > mostExpensiveFood.price ? mostExpensiveBeverage : mostExpensiveFood;
@@ -93,26 +96,39 @@ const FlightBooking = () => {
   useEffect(() => {
     moveEmojiToSeat('A1');
 
+    const randomDelay = () => Math.floor(Math.random() * 10000) + 2000;
+
     const createRandomOrder = () => {
       const randomOrder = makeRandomOrder();
       database.put(randomOrder);
-      const randomTimeout = Math.floor(Math.random() * 8000) + 2000; // Random duration between 2000ms and 5000ms
-      timeoutId = setTimeout(createRandomOrder, randomTimeout);
+      timeoutId = setTimeout(createRandomOrder, randomDelay());
     };
 
-    let timeoutId = setTimeout(createRandomOrder, Math.floor(Math.random() * 3000) + 2000);
+    let timeoutId = setTimeout(createRandomOrder, randomDelay());
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [database, moveEmojiToSeat]);
 
   useEffect(() => {
     moveEmojiToSeat(currentSeat);
+    let innerTimeoutId;
     const timeout = setTimeout(() => {
       selectedOrders.forEach(order => {
         database.put({ ...order, delivered: true });
       });
+      innerTimeoutId = setTimeout(() => {
+        const randomDoc = orders.docs[Math.floor(Math.random() * orders.docs.length)];
+        if (!randomDoc) return;
+        const randomSeat = randomDoc.seat;
+        setSeat(randomSeat);
+      }, Math.floor(Math.random() * 9000) + 5000);
     }, 1000);
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      // clearTimeout(innerTimeoutId);
+    }
   }, [currentSeat, moveEmojiToSeat, selectedOrders, database]);
 
   const currentPassenger = passengerData.find(passenger => passenger.seat === currentSeat)?.name || 'Please select';
@@ -126,24 +142,24 @@ const FlightBooking = () => {
       <div className={Application.progress}>
         <ol className={Progress.steps}>
           <li className={Progress.complete}>
-            <div className={Progress.label}>Choose Dates</div>
+            <div className={Progress.label}>First Class</div>
           </li>
           <li className={Progress.complete}>
-            <div className={Progress.label}>Passenger Details</div>
+            <div className={Progress.label}>Business Elite</div>
           </li>
           <li className={Progress.current}>
-            <div className={Progress.label}>Seat selection</div>
+            <div className={Progress.label}>Comfort Plus</div>
           </li>
           <li>
-            <div className={Progress.label}>Payment confirmation</div>
+            <div className={Progress.label}>Economy</div>
           </li>
           <li>
-            <div className={Progress.label}>Booking confirmation</div>
+            <div className={Progress.label}>Crew</div>
           </li>
         </ol>
       </div>
       <div className={Application.main}>
-        <h1>Seat selection</h1>
+        <h1>In-flight Service</h1>
         <table className={Application.table} cellSpacing="0">
           <thead>
             <tr>
@@ -195,7 +211,7 @@ const FlightBooking = () => {
           </tbody>
         </table>
       </div>
-      <div className={Application.footer}>
+      {/* <div className={Application.footer}>
         <div className={Application.summary}>
           <h3>Selected seat:</h3>
           {isNotSelected ? (
@@ -205,7 +221,7 @@ const FlightBooking = () => {
           )}
         </div>
         <button disabled={isNotSelected}>Continue</button>
-      </div>
+      </div> */}
       <div className={Application.seatpicker}>
         <div
           className={Application.plane}
@@ -282,7 +298,7 @@ const FlightBooking = () => {
             ref={emojiRef}
             style={{
               position: 'absolute',
-              top: '0px',
+              top: '120px',
               left: '56%',
               transform: 'translateX(80%)',
               zIndex: '1000',
@@ -290,6 +306,8 @@ const FlightBooking = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
+              backgroundColor: 'white',
+              borderRadius: '50%',
               transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out',
             }}
           >

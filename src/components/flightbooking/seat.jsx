@@ -12,6 +12,7 @@ class Seat extends React.Component {
 
   render() {
     const { seat, available, currentSeat, forwardedRef, mostExpensiveItem } = this.props;
+    // console.log('forwardedRef', forwardedRef);
     const isCurrent = currentSeat === seat;
     const availableButtonClasses = isCurrent
       ? `${SeatStyle.button} ${SeatStyle.current}`
@@ -22,12 +23,13 @@ class Seat extends React.Component {
         ref={forwardedRef} // Attach the ref here
         className={availableButtonClasses}
         onClick={this.handleClick}
+        style={{ fontSize: '32px' }}
       >
-        {/* {mostExpensiveItem || ""} */}
+        {mostExpensiveItem || ""}
       </button>
     ) : (
       <div>
-        <div style={{ fontSize: '36px', position: 'absolute', zIndex: 100, marginLeft: '5px', marginTop: '1px', textAlign: 'center', width: '20px' }}>
+        <div style={{ opacity: 0.7, fontSize: '32px', position: 'absolute', zIndex: 100, marginTop: '-8px', textAlign: 'center', width: '20px' }}>
           {mostExpensiveItem || ""}
         </div>
         <div

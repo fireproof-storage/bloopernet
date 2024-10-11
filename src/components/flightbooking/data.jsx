@@ -1,4 +1,4 @@
-export { passengerData, makeRandomOrder };
+export { passengerData, makeRandomOrder, getRandomSeat };
 
 function getRandomSeat() {
   const availableSeats = passengerData.filter(passenger => passenger.name !== null);
@@ -29,6 +29,7 @@ function makeRandomOrder() {
     beverages: randomBeverages,
     foods: randomFoods,
     total: total,
+    createdAt: Date.now(),
     seat: getRandomSeat()
   };
 }

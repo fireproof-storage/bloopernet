@@ -79,8 +79,9 @@ function App() {
 
 
   if (partyKitHost) {
-    const connection = partykitS3(database, partyKitHost);
-    console.log("Connection", connection);
+    // const connection = 
+    partykitS3(database, partyKitHost);
+    // console.log("Connection", connection);
   } else {
     console.warn("No connection");
   }
