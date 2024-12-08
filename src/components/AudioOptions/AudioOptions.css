@@ -1,38 +1,3 @@
-.audio-option-form {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.audio-option-form input {
-  flex-grow: 1;
-}
-
-.add-track-button {
-  background-color: transparent;
-  border: 2px solid #4CAF50;
-  color: #4CAF50;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.add-track-button:hover {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.add-track-button:disabled {
-  border-color: #ccc;
-  color: #ccc;
-  cursor: not-allowed;
-}
-
 .cancel-button {
   background-color: transparent;
   border: 2px solid #F44336;

@@ -104,16 +104,36 @@
   .upload-audio,
   .record-audio,
   .link-audio {
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
   }
+
+	.track-form {
+		padding: 3px;
+	}
 
   .track-form input,
   .track-form button {
     width: 100%;
   }
 
+	
+	.track-form button[type="submit"],
   .track-form .cancel-button {
-    margin-left: 0;
-  }
+		width: 40%;
+	}
+
+	.track-form input[type="text"] {
+		min-width: auto;
+	}
+
+	.track-form input[type="text"].name-field {
+		width: 50%;
+	}
+
+	/* .track-form .url-field { */
+	/* 	min-width: 50%; */
+	/* } */
+  /* .track-form .cancel-button { */
+  /* } */
 }

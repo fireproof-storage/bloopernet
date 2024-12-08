@@ -47,6 +47,7 @@ const LinkAudio = ({ onDataChange, onCancel, existingTrackNames, initialData }) 
   return (
     <form onSubmit={handleSubmit} className="link-audio">
       <input 
+				className="name-field"
         type="text" 
         value={name} 
         onChange={(e) => setName(e.target.value)} 
@@ -55,6 +56,7 @@ const LinkAudio = ({ onDataChange, onCancel, existingTrackNames, initialData }) 
       />
       <input 
         type="url" 
+				className="url-field"
         value={url} 
         onChange={(e) => setUrl(e.target.value)} 
         placeholder="Audio URL"
@@ -63,6 +65,10 @@ const LinkAudio = ({ onDataChange, onCancel, existingTrackNames, initialData }) 
       <button type="submit" disabled={!url || !name} className="audio-option-button" aria-label="Add Track">
         <span className="material-icons">check</span>
       </button>
+			<button onClick={onCancel} className="cancel-button" role="button" tabIndex="0" aria-label="Cancel">
+        <span className="material-icons">close</span>
+      </button>
+
     </form>
   );
 };

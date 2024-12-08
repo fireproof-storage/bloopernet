@@ -22,3 +22,6 @@ dist/
 *.sln
 *.sw?
 .env
+*.js.ps
+*.jsx.ps
+*.css.ps

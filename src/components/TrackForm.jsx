@@ -38,6 +38,9 @@ const TrackForm = ({ onSubmit, onCancel, existingTrackNames, initialData = null 
             <button onClick={() => setAudioOption('record')} className="audio-option-button" role="button" tabIndex="0" aria-label="Record Audio">
               <span className="material-icons">mic</span>
             </button>
+						<button onClick={onCancel} className="cancel-button" role="button" tabIndex="0" aria-label="Cancel">
+							<span className="material-icons">close</span>
+						</button>
           </div>
         );
     }
@@ -46,9 +49,6 @@ const TrackForm = ({ onSubmit, onCancel, existingTrackNames, initialData = null 
   return (
     <div className="track-form">
       {renderAudioOption()}
-      <button onClick={onCancel} className="cancel-button" role="button" tabIndex="0" aria-label="Cancel">
-        <span className="material-icons">close</span>
-      </button>
     </div>
   );
 };

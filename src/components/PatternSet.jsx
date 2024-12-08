@@ -4,17 +4,22 @@ import { useTimesync } from '../TimesyncContext';
 import Pattern from './Pattern';
 import TrackForm from './TrackForm';
 import { v4 as uuidv4 } from 'uuid';
-import { isMasterMuted } from '../audioUtils'; // Add this import
+import { calculateElapsedQuarterBeats, getDefaultInstrumentId } from '../utils';
 import './PatternSet.css';
 
 const DEFAULT_INSTRUMENTS = ['Kick', 'Snare', 'Hi-hat', 'Tom', 'Clap'];
 
-const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
+const PatternSet = ({ 
+  dbName, 
+  beats, 
+  showNewTrackForm, 
+  onCancelNewTrack, 
+  headStart_ms, 
+  masterMuted,
+}) => {
   const ts = useTimesync();
-  const [elapsedQuarterBeats, setElapsedQuarterBeats] = useState(0);
   const { database, useLiveQuery } = useFireproof(dbName, {public: true});
   const [trackSettings, setTrackSettings] = useState({});
-  const [masterMuted, setMasterMuted] = useState(isMasterMuted());
 
   // Fetch the BPM document from the database
   const bpmResult = useLiveQuery('type', { key: 'bpm' });
@@ -22,9 +27,7 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
   
   // Extract BPM, lastChanged, and playing from the query result
   const bpm = bpmDoc?.bpm || 120;
-  const lastChanged_ms = bpmDoc?.lastChanged_ms || (ts ? ts.now() : Date.now()); // Use timesync for default value if available
   const playing = bpmDoc?.playing || false;
-  const prevQuarterBeats = bpmDoc?.prevQuarterBeats || 0;
 
   // Query for all instrument documents
   const instrumentDocs = useLiveQuery('type', { key: 'instrument' });
@@ -33,10 +36,11 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
   const instrumentRecords = useMemo(() => {
     const records = {};
     DEFAULT_INSTRUMENTS.forEach(instrument => {
-      records[instrument] = {
-        _id: instrument,
+      const id = getDefaultInstrumentId(instrument);
+      records[id] = {
+        _id: id,
         name: instrument,
-        audioFile: `/sounds/${instrument.toLowerCase()}.wav`,
+        audioFile: `/sounds/${id}.wav`,
         mimeType: 'audio/wav',
         referenceType: 'url'
       };
@@ -56,29 +60,16 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
     return Object.values(instrumentRecords).map(record => record.name.toLowerCase());
   }, [instrumentRecords]);
 
-  const calculateElapsedQuarterBeats = useCallback(() => {
-    if (!ts){console.warn("no timesync"); return 0;}
-    if (!ts || !bpm || !lastChanged_ms || !playing) return 0;
-    const currentTime_ms = ts.now();
-    const elapsedTime_ms = currentTime_ms - lastChanged_ms;
-    const elapsedQuarterBeats = Math.floor((elapsedTime_ms / 60000) * bpm * 4) + prevQuarterBeats; // 60000 ms in a minute, 4 quarter beats per beat
-    // console.log("elapsedQuarterBeats: ", elapsedQuarterBeats);
-    if (elapsedQuarterBeats == 0){
-      console.log("elapsedQuarterBeats is 0");
-    } 
-    return elapsedQuarterBeats;
-  }, [ts, bpm, lastChanged_ms, playing, prevQuarterBeats]);
-
-  useEffect(() => {
-    if (playing) {
-      const intervalId = setInterval(() => {
-        setElapsedQuarterBeats(calculateElapsedQuarterBeats());
-      }, 1000/ (4 * (bpm/60) ) ); // Update 4x per quarter beat
-      return () => clearInterval(intervalId);
-    } else {
-      setElapsedQuarterBeats(0);
-    }
-  }, [playing, calculateElapsedQuarterBeats]);
+  // useEffect(() => {
+  //   if (playing) {
+  //     const intervalId = setInterval(() => {
+  //       setElapsedQuarterBeats(calculateElapsedQuarterBeats(bpmDoc, ts));
+  //     }, 1000 / (4 * (bpm / 60))); // Update 4x per quarter beat
+  //     return () => clearInterval(intervalId);
+  //   } else {
+  //     setElapsedQuarterBeats(0);
+  //   }
+  // }, [playing, bpmDoc, ts, bpm]);
 
   const updateBeat = async (instrumentId, beatIndex, isActive) => {
     const beatId = `beat-${instrumentId}-${beatIndex}`;
@@ -177,7 +168,7 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
 
   const handleDeleteTrack = useCallback(async (instrumentId) => {
     // Don't allow deletion of default instruments
-    if (DEFAULT_INSTRUMENTS.some(name => name.toLowerCase() === instrumentId)) {
+    if (DEFAULT_INSTRUMENTS.some(name => getDefaultInstrumentId(name) === instrumentId)) {
       alert("Cannot delete default instruments");
       return;
     }
@@ -235,21 +226,6 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
     });
   }, [instrumentRecords]);
 
-  useEffect(() => {
-    const checkMasterMute = () => {
-      setMasterMuted(isMasterMuted());
-    };
-
-    // Check initially
-    checkMasterMute();
-
-    // Set up an interval to check periodically
-    const intervalId = setInterval(checkMasterMute, 100); // Check every 100ms
-
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
   const handleTrackChange = useCallback(async (instrumentId, newData) => {
     try {
       const doc = {
@@ -274,15 +250,6 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
 
       const putResponse = await database.put(doc);
 
-      // // Update the local state
-      // setInstrumentRecords(prev => ({
-      //   ...prev,
-      //   [instrumentId]: {
-      //     ...prev[instrumentId],
-      //     ...doc,
-      //     _id: putResponse.id,
-      //   }
-      // }));
     } catch (error) {
       console.error('Error updating track:', error);
     }
@@ -306,10 +273,8 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
           mimeType={instrumentRecord.mimeType}
           referenceType={instrumentRecord.referenceType}
           _files={instrumentRecord._files}
-          beats={beats}
           updateBeat={updateBeat}
           bpmDoc={bpmDoc}
-          elapsedQuarterBeats={elapsedQuarterBeats}
           isMuted={trackSettings[instrumentRecord._id]?.muted || false}
           isSolo={trackSettings[instrumentRecord._id]?.soloed || false}
           anyTrackSoloed={anyTrackSoloed}
@@ -324,6 +289,7 @@ const PatternSet = ({ dbName, beats, showNewTrackForm, onCancelNewTrack }) => {
           onVolumeChange={handleVolumeChange}
           initialVolume={trackSettings[instrumentRecord._id]?.volume || 100}
           onTrackChange={handleTrackChange}
+          headStart_ms={headStart_ms}
         />
       ))}
     </div>

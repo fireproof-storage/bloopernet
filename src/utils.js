@@ -121,7 +121,7 @@ export const scheduleBeat = (sourceNode, audioTime_s) => {
   const ctx = getAudioContext();
   if (!ctx) {return;}
   if (ctx.state != 'running') {
-   console.warn("audio context not running");
+ //  console.warn("audio context not running");
     return;
   }
 
@@ -147,14 +147,23 @@ export const getAnalyserNode = () => {
   return analyserNode;
 }
 
-export const getHeadStart_ms = () => {
-  return headStart_ms - getDefaultLatency();
-};
-
-export const getHeadStart_s = () => {
-  return getHeadStart_ms() / 1000;
-};
-
 export const getMasterGainNode = () => {
   return masterGainNode;
 };
+
+export function calculateElapsedQuarterBeats(bpmDoc, ts) {
+  if (!ts || !bpmDoc || !bpmDoc.playing) {
+    return 0;
+  }
+
+  const { bpm, lastChanged_ms, prevQuarterBeats } = bpmDoc;
+  const currentTime_ms = ts.now();
+  const elapsedTime_ms = currentTime_ms - lastChanged_ms;
+  const elapsedQuarterBeats = Math.floor((elapsedTime_ms / 60000) * bpm * 4) + prevQuarterBeats;
+
+  return elapsedQuarterBeats;
+}
+
+export function getDefaultInstrumentId(instrumentName) {
+  return instrumentName.toLowerCase();
+}

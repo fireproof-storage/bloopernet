@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useFireproof } from 'use-fireproof';
-import BeatButton from './BeatButton';
-import InstrumentInfo from './InstrumentInfo';
-import { loadSound, clearScheduledEvents, getAudioContext, scheduleBeat, getHeadStart_ms, getMasterGainNode, playSoundBuffer } from '../audioUtils';
+import { loadSound, clearScheduledEvents, getAudioContext, scheduleBeat, getMasterGainNode, calculateElapsedQuarterBeats} from '../utils';
 import { useTimesync } from '../TimesyncContext';
 import './Pattern.css';
 import TrackForm from './TrackForm';
@@ -14,10 +12,8 @@ const Pattern = ({
   mimeType,
   referenceType,
   _files,
-  beats, 
   updateBeat, 
   bpmDoc, 
-  elapsedQuarterBeats, 
   isMuted, 
   isSolo, 
   onMuteToggle, 
@@ -29,55 +25,89 @@ const Pattern = ({
   dbName,
   masterMuted,
   existingTrackNames,
-  onVolumeChange, // Add this prop
-  initialVolume, // Add this prop
-  onTrackChange, // Add this prop
+  onVolumeChange,
+  initialVolume,
+  onTrackChange,
+  headStart_ms,
 }) => {
-  const { database } = useFireproof(dbName, {public: true});
+  const { database, useLiveQuery } = useFireproof(dbName, {public: true});
   const [audioBuffer, setAudioBuffer] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [soundBuffer, setSoundBuffer] = useState(null);
+  const [loadError, setLoadError] = useState(null);
   const [wasPlaying, setWasPlaying] = useState(false);
   const gainNodeRef = useRef(null);
   const sourceNodeRef = useRef(null);
   const ts = useTimesync();
   const patternLength = 16; // 16 quarter beats = 4 full beats
-  const scheduledEventsRef = useRef([]);
+  const scheduledEventsRef = useRef(new Array(16).fill(null));
   const timesyncStartTime_ms = useRef(null);
   const [showInfo, setShowInfo] = useState(false);
   const [showChangeForm, setShowChangeForm] = useState(false);
   const [volume, setVolume] = useState(initialVolume || 100);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const beatButtonsRef = useRef([]);
+  const animationFrameRef = useRef(null);
 
   // used for decorating buttons
-  const currentQuarterBeat = (elapsedQuarterBeats + patternLength) % patternLength;
+  const currentQuarterBeat = (calculateElapsedQuarterBeats(bpmDoc, ts) + patternLength) % patternLength;
 
   const bpm = bpmDoc?.bpm || 120;
   const playing = bpmDoc?.playing || false;
 
+  // Fetch beats for this specific pattern
+  const beatResult = useLiveQuery('type', { 
+    key: 'beat',
+  });
+
+  const beats = useMemo(() => {
+    const beatMap = {};
+    beatResult.rows.forEach(row => {
+      if (row.doc) {
+        beatMap[row.doc._id] = row.doc.isActive;
+      }
+    });
+    return beatMap;
+  }, [beatResult]);
+
+  // Use useMemo to memoize the audio data
+  const audioData = useMemo(() => {
+    if (referenceType === 'url') {
+      return audioFile;
+    } else if (referenceType === 'database') {
+      const fileName = Object.keys(_files)[0];
+      return _files[fileName].file().then(file => URL.createObjectURL(file));
+    }
+    return null;
+  }, [audioFile, referenceType]);
+
+  // Use useEffect to load the sound buffer
   useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    setLoadError(null);
+
     const loadAudio = async () => {
-      setIsLoading(true);
       try {
-        let audioData;
-        if (referenceType === 'url') {
-          audioData = audioFile;
-        } else if (referenceType === 'database') {
-          const fileName = Object.keys(_files)[0];
-          const file = await _files[fileName].file();
-          audioData = URL.createObjectURL(file);
-        }
-        const buffer = await loadSound(audioData);
-        setSoundBuffer(buffer);
+        const data = await audioData;
+        if (!isMounted) return;
+        const buffer = await loadSound(data);
+        if (!isMounted) return;
+        setAudioBuffer(buffer);
+        setIsLoading(false);
       } catch (error) {
+        if (!isMounted) return;
         console.error('Error loading audio:', error);
-      } finally {
+        setLoadError(error);
         setIsLoading(false);
       }
     };
 
     loadAudio();
-  }, [referenceType, audioFile, _files]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [audioData]);
 
   useEffect(() => {
     if (!gainNodeRef.current) {
@@ -102,7 +132,7 @@ const Pattern = ({
   };
 
   const scheduleBeats = useCallback((scheduleStart_s, quarterBeatsToSchedule = 1, startBeatNumber = 0) => {
-    if (!soundBuffer || !playing) return [];
+    if (!audioBuffer || !playing) return [];
 
     const ctx = getAudioContext();
     const events = [];
@@ -110,22 +140,30 @@ const Pattern = ({
     let nextBeatNumber = (startBeatNumber) % patternLength;
     for (let i = 0; i < quarterBeatsToSchedule; i++) {
       if (beats[`beat-${instrumentId}-${nextBeatNumber}`]) {
-        const source = ctx.createBufferSource();
-        source.buffer = soundBuffer;
-        source.connect(gainNodeRef.current);
-
         const beatTime_s = scheduleStart_s + (i * 15 / bpm);
-        const event = scheduleBeat(source, beatTime_s);
-        if (event) events.push(event);
+        const currentTime = ctx.currentTime;
+
+        // Check if the beat is already scheduled and still in the future
+        if (!scheduledEventsRef.current[nextBeatNumber] || scheduledEventsRef.current[nextBeatNumber].deadline <= currentTime) {
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(gainNodeRef.current);
+
+          const event = scheduleBeat(source, beatTime_s);
+          if (event) {
+            events.push(event);
+            scheduledEventsRef.current[nextBeatNumber] = event;
+          }
+        }
       }
       nextBeatNumber = (nextBeatNumber + 1) % patternLength;
     }
 
     return events;
-  }, [instrument, soundBuffer, beats, bpm, playing]);
+  }, [audioBuffer, beats, bpm, playing, instrumentId]);
 
   const scheduleNextQuarterBeat = useCallback(() => {
-    if (!soundBuffer || !playing || !ts || timesyncStartTime_ms.current === null) return;
+    if (!audioBuffer || !playing || !ts || timesyncStartTime_ms.current === null) return;
 
     const currentTimesyncTime_ms = ts.now();
     const elapsedTimesyncTime_ms = currentTimesyncTime_ms - timesyncStartTime_ms.current;
@@ -134,9 +172,9 @@ const Pattern = ({
     const quarterBeatDuration_s = 15 / bpm;
     const quarterBeatDuration_ms = quarterBeatDuration_s * 1000;
 
-    // Calculate the next quarter beat start time
-    const nextQuarterBeatNumber = Math.ceil((elapsedTimesyncTime_ms + getHeadStart_ms()) / quarterBeatDuration_ms);
-    const nextQuarterBeatStart_ms = nextQuarterBeatNumber * quarterBeatDuration_ms;
+    // alculate the next quarter beat start time
+    const nextQuarterBeatNumber = Math.ceil((elapsedTimesyncTime_ms + headStart_ms) / quarterBeatDuration_ms);
+    const nextQuarterBeatStart_ms = (nextQuarterBeatNumber * quarterBeatDuration_ms) + headStart_ms;
 
     // relative time to schedule
     const relativeTimeToSchedule_ms = nextQuarterBeatStart_ms - elapsedTimesyncTime_ms;
@@ -151,7 +189,7 @@ const Pattern = ({
 
     // Only schedule if it's in the future
     if (audioTimeToSchedule_s > currentAudioTime_s) {
-      scheduledEventsRef.current = scheduleBeats(
+      const newEvents = scheduleBeats(
         audioTimeToSchedule_s,
         1,
         nextQuarterBeatNumber
@@ -160,7 +198,7 @@ const Pattern = ({
       console.warn("too late to schedule by ", (audioTimeToSchedule_s - currentAudioTime_s), " seconds");
     }
 
-  }, [instrument, soundBuffer, beats, bpm, playing, ts, isMuted, isSolo]);
+  }, [instrument, audioBuffer, beats, bpm, playing, ts, isMuted, isSolo]);
 
   useEffect(() => {
     if (ts && playing && !wasPlaying) {
@@ -182,24 +220,16 @@ const Pattern = ({
     } else if (!playing && wasPlaying) {
       timesyncStartTime_ms.current = null;
       // Clear any scheduled events when stopping
-      clearScheduledEvents(scheduledEventsRef.current);
-      scheduledEventsRef.current = [];
+      clearScheduledEvents(scheduledEventsRef.current.filter(Boolean));
+      scheduledEventsRef.current = new Array(16).fill(null);
       setWasPlaying(false);
     }
-  }, [playing, ts, soundBuffer, beats, instrument, isMuted, isSolo]);
-
-  useEffect(() => {
-    if (ts && playing) {
-      const quarterBeatInterval_ms = (15 / bpm) * 1000; // Duration of one quarter beat in milliseconds
-      const intervalId = setInterval(scheduleNextQuarterBeat, quarterBeatInterval_ms);
-      return () => clearInterval(intervalId);
-    }
-  }, [ts, playing, scheduleNextQuarterBeat, bpm, isMuted, isSolo]);
+  }, [playing, ts, audioBuffer, beats, instrument, isMuted, isSolo]);
 
   const playSound = () => {
-    if (soundBuffer) {
+    if (audioBuffer) {
       const source = getAudioContext().createBufferSource();
-      source.buffer = soundBuffer;
+      source.buffer = audioBuffer;
       source.connect(gainNodeRef.current);
       source.start();
     } else {
@@ -207,24 +237,76 @@ const Pattern = ({
     }
   };
 
+  const updateBeatButtonClasses = useCallback((currentBeat) => {
+    beatButtonsRef.current.forEach((button, index) => {
+      if (!button) return;
+
+      const beatId = `beat-${instrumentId}-${index}`;
+      const isActive = beats[beatId] === true;
+      const isCurrent = index === currentBeat;
+      const isSilent = isMuted || (anyTrackSoloed && !isSolo) || masterMuted;
+
+      button.className = `beat-button${isActive ? ' active' : ''}${isCurrent ? ' current' : ''}${isSilent ? ' silent' : ''}`;
+    });
+  }, [beats, instrumentId, isMuted, isSolo, anyTrackSoloed, masterMuted]);
+
+  useEffect(() => {
+    let lastUpdateTime = 0;
+    let prevBeat = -1;
+
+    const updateAnimation = (timestamp) => {
+      if (!playing) return;
+
+      // Update every 16ms (roughly 60fps)
+      if (timestamp - lastUpdateTime > 16) {
+        const currentQuarterBeat = calculateElapsedQuarterBeats(bpmDoc, ts);
+        if (currentQuarterBeat > prevBeat) {
+          const currentBeat = Math.floor(currentQuarterBeat) % 16;
+          updateBeatButtonClasses(currentBeat);
+          scheduleNextQuarterBeat();
+          prevBeat = currentQuarterBeat;
+        }
+        lastUpdateTime = timestamp;
+      }
+
+      animationFrameRef.current = requestAnimationFrame(updateAnimation);
+    };
+
+    if (playing) {
+      animationFrameRef.current = requestAnimationFrame(updateAnimation);
+    } else {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      // Reset all beat buttons to their non-current state
+      updateBeatButtonClasses(-1);
+    }
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [playing, bpmDoc, ts, updateBeatButtonClasses, scheduleNextQuarterBeat]);
+
   const renderBeatButtons = () => {
     const groups = [];
     for (let i = 0; i < 4; i++) {
       const groupButtons = [];
       for (let j = 0; j < 4; j++) {
         const index = i * 4 + j;
+        const isActive = beats[`beat-${instrumentId}-${index}`] || false;
+        
         groupButtons.push(
-          <BeatButton 
+          <div
             key={`${instrumentId}-${index}`}
-            instrumentId={instrumentId}
-            beatIndex={index} 
-            isActive={beats[`beat-${instrumentId}-${index}`] || false}
-            isCurrent={playing && index === currentQuarterBeat}
-            isStarting={elapsedQuarterBeats < 0 && playing}
-            updateBeat={updateBeat}
-            className={`beat-group-${i}`}
-            isSilent={isMuted || (anyTrackSoloed && !isSolo) || masterMuted}
-          />
+            ref={el => beatButtonsRef.current[index] = el}
+            className={`beat-button${isActive ? ' active' : ''}`}
+            onClick={() => updateBeat(instrumentId, index, !isActive)}
+            data-id={`beat-${instrumentId}-${index}`}
+          >
+            <div className="beat-button-inner" />
+          </div>
         );
       }
       groups.push(
@@ -294,43 +376,45 @@ const Pattern = ({
           {!showChangeForm && (
             <div className="volume-control">
               <label htmlFor={`volume-${instrumentId}`}>Volume: {volume}%</label>
-            <input
-              type="range"
-              id={`volume-${instrumentId}`}
-              min="0"
-              max="200"
-              value={volume}
-              onChange={handleVolumeChange}
-              />
+							<input
+								type="range"
+								id={`volume-${instrumentId}`}
+								min="0"
+								max="800"
+								value={volume}
+								onChange={handleVolumeChange}
+							/>
             </div>
           )}
           {!showChangeForm && (
             <button className="track-change-button" onClick={() => setShowChangeForm(true)} role="button" tabIndex="0">Change Sample</button>
           )}
-          <button 
-            className="track-delete-button" 
-            onClick={handleDeleteOrRevert} 
-            role="button" 
-            tabIndex="0"
+          {showChangeForm && (
+            <TrackForm
+              onSubmit={(newData) => {
+                onTrackChange(instrumentId, newData);
+                setShowChangeForm(false);
+              }}
+              onCancel={() => setShowChangeForm(false)}
+              existingTrackNames={existingTrackNames}
+              initialData={{ name: instrument, audioFile, mimeType, referenceType }}
+            />
+          )}
+          {!showChangeForm && (
+            <button 
+              className="track-delete-button" 
+              onClick={handleDeleteOrRevert} 
+              role="button" 
+              tabIndex="0"
           >
-            {isDefaultInstrument ? 'Revert' : 'Delete'}
-          </button>
+              {isDefaultInstrument ? 'Revert' : 'Delete'}
+            </button>
+          )}
         </div>
       ) : (
         <div className="beat-buttons">
           {renderBeatButtons()}
         </div>
-      )}
-      {showChangeForm && (
-        <TrackForm
-          onSubmit={(newData) => {
-            onTrackChange(instrumentId, newData);
-            setShowChangeForm(false);
-          }}
-          onCancel={() => setShowChangeForm(false)}
-          existingTrackNames={existingTrackNames}
-          initialData={{ name: instrument, audioFile, mimeType, referenceType }}
-        />
       )}
       {showDeleteConfirm && (
         <div className="delete-confirm">
@@ -350,6 +434,7 @@ const Pattern = ({
         </div>
       )}
       {isLoading && <div>Loading audio...</div>}
+      {loadError && <div>Error loading audio: {loadError.message}</div>}
     </div>
   );
 };

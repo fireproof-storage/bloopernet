@@ -1,15 +1,12 @@
 .top-controls {
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center; /* Center the button groups */
   padding: 10px;
-}
-
-.button-group {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  flex-wrap: wrap; /* Allow wrapping by default */
+  margin-bottom: 20px;
 }
 
 .control-button {
@@ -21,8 +18,9 @@
   cursor: pointer;
   font-size: 16px;
   transition: all 0.3s ease;
-  flex: 1 1 auto; /* Allow buttons to grow and shrink */
-  min-width: 100px; /* Ensure buttons have a minimum width */
+  flex: 0 1 auto;
+  white-space: nowrap;
+  min-width: 120px;
 }
 
 .control-button:hover {
@@ -38,7 +36,7 @@
   animation: pulseBorder 2s infinite;
 } */
 
-@keyframes pulseBorder {
+/* @keyframes pulseBorder {
   0% {
     border-color: var(--button-border);
   }
@@ -48,7 +46,7 @@
   100% {
     border-color: var(--button-border);
   }
-} */
+}  */
 
 /* Specific styles for other buttons if needed */
 .play-pause-button, .clear-button, .theme-toggle {
@@ -62,7 +60,7 @@
 }
 
 .bpm-slider {
-  width: 150px;
+  width: 500px;
 }
 
 .bpm-value {
@@ -71,37 +69,40 @@
 }
 
 /* Responsive styles for mobile */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .top-controls {
     flex-direction: column;
     align-items: stretch;
+    justify-content: flex-start; /* Reset justification for mobile */
+    gap: 5px;
   }
 
   .button-group {
-    flex-direction: column;
-    width: 100%;
+    flex-wrap: wrap;
   }
 
   .control-button {
-    width: 100%;
-    margin-bottom: 10px;
+    flex: 1 1 calc(50% - 5px);
+    /* font-size: 14px; */
+    /* padding: 8px 12px; */
+    min-width: 0;
   }
 
-  /* Specific styles for the BPM control if it exists */
   .bpm-control {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
 
   .bpm-slider {
+    flex: 1;
+    margin: 0;
     width: 100%;
-    margin-top: 5px;
-    margin-bottom: 5px;
   }
 }
 
-:root {
+/* :root {
   --button-bg: #FFF;
   --button-text: #FF6B35;
   --button-border: #FF8C42;
@@ -117,4 +118,78 @@
   --button-hover: #4A3A2E;
   --button-active: #5C4A3A;
   --button-pulse: #FF8C42;
+} */
+
+.show-delay :active {
+  background-color: var(--button-active);
+}
+
+.latency-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.latency-slider {
+  width: 150px;
+}
+
+/* Responsive styles for mobile */
+@media (max-width: 767px) {
+  .latency-slider {
+    flex: 1;
+    margin: 0;
+  }
+}
+
+.bpm-input,
+.latency-input {
+  width: 60px;
+  text-align: center;
+  font-size: 16px;
+  padding: 2px 5px;
+  border: 1px solid var(--button-border);
+  border-radius: 4px;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+}
+
+.bpm-value {
+  cursor: pointer;
+}
+
+.bpm-value:hover {
+  text-decoration: underline;
+}
+
+.latency-select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #000;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* this insane looking thing is a dropdown arrow for the latency select input */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position-x: 98%;
+  background-position-y: 50%;
+}
+
+/* Adjust the existing styles for better mobile display */
+@media (max-width: 768px) {
+  .latency-control {
+    width: 100%;
+  }
+}
+
+.latency-button {
+  font-size: 18px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
 }

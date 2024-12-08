@@ -1,0 +1,36 @@
+.latency-measurer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--button-bg);
+  border: 2px solid var(--button-border);
+  border-radius: 8px;
+  padding: 20px;
+  z-index: 1000;
+  text-align: center;
+}
+
+.latency-measurer h2 {
+  margin-top: 0;
+}
+
+.latency-measurer button {
+  margin: 10px;
+  padding: 10px 20px;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 2px solid var(--button-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.latency-measurer button:hover {
+  background-color: var(--button-hover);
+}
+
+.latency-measurer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,6 +1,3 @@
-:root {
-  --app-height: 100%;
-}
 
 /* You might want to add this if you have a background on the body or html */
 body, html {
@@ -8,45 +5,30 @@ body, html {
   z-index: 0;
   padding: 0;
   margin: 0;
-  overflow: hidden;
-  width: 100vw;
-  height: 100vh;
-  height: var(--app-height);
 }
 
+.app {
+  position: relative;
+  flex: 1;
+  margin: auto;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
 
 .app-content {
-  width: 100%;
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
   -webkit-overflow-scrolling: touch;
   /* Add any other specific styles for your content here */
   text-align: center;
-  padding: 20px;
   max-width: 885px;  /* Adjust this value as needed */
   margin: 0 auto;    /* This centers the content horizontally */
+  padding-top: 40px;
   z-index: 2; /* This ensures the main app content is above the visualizer */
-  min-height: 100vh;
-  height: var(--app-height);
-}
-
-.app {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-
-body, html {
-  position: relative;
-  z-index: 0;
-  padding: 0;
-  margin: 0;
-  overflow: hidden;
-  width: 100vw;
-  height: 100vh;
-  height: var(--app-height);
 }
 
 .app-title {
@@ -58,107 +40,58 @@ body, html {
   -ms-user-select: none; /* For IE10+/Edge */
 }
 
-.app-container {
-  width: 100vw;
-  max-width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
+/* button group styles for the entire app */
+.button-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 5px;
+  align-items: center;
 }
 
-.top-controls {
-  margin-bottom: 20px;
-  /* Add any specific styles for top controls */
+.button-group-break {
+  flex-basis: 100%;
+  height: 0;
 }
 
-.pattern-set {
-  width: 100%;
-}
-
-@media (max-width: 768px) {
-  #root {
-    align-items: normal !important;
-  }
-  .pattern {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .instrument-button {
-    width: 100%;
-    margin-right: 0;
-    margin-bottom: 10px;
-  }
-
-  .beat-buttons {
-    flex-wrap: wrap;
-  }
-
-  .beat-group {
-    width: 50%;
-    box-sizing: border-box;
-  }
-}
-
-.app-content {
-  position: relative;
-  z-index: 2;
-}
-
-
-.edit-form {
+.wake-lock-indicator {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.7;
 }
 
-.edit-form input {
-  flex: 1;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-}
-
-.edit-form button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.edit-form button[type="submit"] {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.edit-form .delete-button {
-  background-color: #f44336;
-  color: white;
-}
-
-.edit-form button:hover {
-  opacity: 0.8;
-}
-
-.edit-form button[type="button"] {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.edit-form button[type="button"]:hover {
-  background-color: #e0e0e0;
+.wake-lock-indicator .material-icons {
+  font-size: 1rem;
 }
 
 /* Styles for mobile screens */
 @media (max-width: 767px) {
+  .app {
+    border-radius: 0; /* Remove border radius on mobile for full-bleed effect */
+		overflow-y: auto;
+		padding: 0px;
+  }
+
   .app-content {
     padding: 5px;
   }
 
-	.pattern {
-		/* margin-bottom: 5px; */
-	}
+  .button-group {
+    flex-wrap: wrap;
+    flex-basis: 100%; /* Makes each group take full width on mobile */
+  }
 
-	.instrument-button {
-		margin-bottom: 5px;
-	}
+  .button-group button {
+    flex: 1 0 auto;
+    margin-bottom: 5px;
+  }
+}
+
+/* Styles for larger screens */
+@media (min-width: 768px) {
+  .app {
+    flex: 0 1 auto; /* Don't grow to full height on larger screens */
+  }
 }
