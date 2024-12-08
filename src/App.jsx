@@ -49,7 +49,7 @@ function App() {
   //////////////////////////////////////////////////////////////////////////////
   // Construct the database name based on the jamId
   const firstPathSegment = document.location.pathname.split('/')[1];
-  const baseDbName = 'blx' + (firstPathSegment ? '-' + firstPathSegment : '');
+  const baseDbName = 'blt' + (firstPathSegment ? '-' + firstPathSegment : '');
   const dbName = isValidJamId ? `${baseDbName}-${sanitizedJamId}` : baseDbName;
 
   console.log("dbname", dbName);
