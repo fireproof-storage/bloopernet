@@ -52,7 +52,7 @@ function App() {
   const baseDbName = (import.meta.env.VITE_DBNAME || 'blx') + (firstPathSegment ? '-' + firstPathSegment : '');
   const dbName = isValidJamId ? `${baseDbName}-${sanitizedJamId}` : baseDbName;
 
-  console.log("dbName", dbName);
+  console.log("db-name", dbName);
 
   // connect to the database
   const { database, useLiveQuery } = useFireproof(dbName, {public: true});
