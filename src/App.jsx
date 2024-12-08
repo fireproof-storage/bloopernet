@@ -49,17 +49,17 @@ function App() {
   //////////////////////////////////////////////////////////////////////////////
   // Construct the database name based on the jamId
   const firstPathSegment = document.location.pathname.split('/')[1];
-  const baseDbName = 'blt' + (firstPathSegment ? '-' + firstPathSegment : '');
+  const baseDbName = 'bbxx' + (firstPathSegment ? '-' + firstPathSegment : '');
   const dbName = isValidJamId ? `${baseDbName}-${sanitizedJamId}` : baseDbName;
 
-  console.log("dbname", dbName);
+  console.log("db-Name", dbName);
 
   // connect to the database
   const { database, useLiveQuery } = useFireproof(dbName, {public: true});
   
   useEffect(() => {
     const connectToDatabase = async () => {
-      const connection = await connect(database, `blx.${dbName}`);
+      const connection = await connect(database, `xxbb.${dbName}`);
       setConnectionUrl(connection.dashboardUrl.toString());
     };
     connectToDatabase();
