@@ -36,16 +36,16 @@ function App() {
 
   // Construct the database name based on the jamId
   const firstPathSegment = document.location.pathname.split('/')[1];
-  const baseDbName = (import.meta.env.VITE_DBNAME || 'bloop-pub') + (firstPathSegment ? '-' + firstPathSegment : '');
+  const baseDbName = 'bbxx' + (firstPathSegment ? '-' + firstPathSegment : '');
   const dbName = isValidJamId ? `${baseDbName}-${sanitizedJamId}` : baseDbName;
 
-  console.log("dbName", dbName);
+  console.log("db-Name", dbName);
 
   const { database, useLiveQuery } = useFireproof(dbName, {public: true});
   
   useEffect(() => {
     const connectToDatabase = async () => {
-      const connection = await connect(database, `bloop.${dbName}`);
+      const connection = await connect(database, `xxbb.${dbName}`);
       setConnectionUrl(connection.dashboardUrl.toString());
     };
     connectToDatabase();
