@@ -12,8 +12,8 @@
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@fireproof/cloud": "^0.19.112",
-    "@fireproof/core": "^0.19.114",
+    "@fireproof/cloud": "0.19.116",
+    "@fireproof/core": "0.19.116",
     "@mui/material": "^6.1.0",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "audiomotion-analyzer": "^4.5.0",
@@ -28,7 +28,7 @@
     "react-router-dom": "^6.26.2",
     "react-screen-wake-lock": "^3.0.2",
     "timesync": "^1.0.11",
-    "use-fireproof": "^0.19.106",
+    "use-fireproof": "0.19.116",
     "uuid": "^10.0.0",
     "waaclock": "^0.5.5"
   },

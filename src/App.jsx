@@ -49,7 +49,7 @@ function App() {
   //////////////////////////////////////////////////////////////////////////////
   // Construct the database name based on the jamId
   const firstPathSegment = document.location.pathname.split('/')[1];
-  const baseDbName = (import.meta.env.VITE_DBNAME || 'blooper-pub') + (firstPathSegment ? '-' + firstPathSegment : '');
+  const baseDbName = (import.meta.env.VITE_DBNAME || 'blx') + (firstPathSegment ? '-' + firstPathSegment : '');
   const dbName = isValidJamId ? `${baseDbName}-${sanitizedJamId}` : baseDbName;
 
   console.log("dbName", dbName);
@@ -59,7 +59,7 @@ function App() {
   
   useEffect(() => {
     const connectToDatabase = async () => {
-      const connection = await connect(database, `bloop.${dbName}`);
+      const connection = await connect(database, `blx.${dbName}`);
       setConnectionUrl(connection.dashboardUrl.toString());
     };
     connectToDatabase();
