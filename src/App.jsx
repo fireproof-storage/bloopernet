@@ -39,7 +39,7 @@ function App() {
   const baseDbName = 'bbxx' + (firstPathSegment ? '-' + firstPathSegment : '');
   const dbName = isValidJamId ? `${baseDbName}-${sanitizedJamId}` : baseDbName;
 
-  console.log("db-Name", dbName);
+  console.log("dbName", dbName);
 
   const { database, useLiveQuery } = useFireproof(dbName, {public: true});
   
