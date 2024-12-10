@@ -13,6 +13,11 @@ import './App.css';
 import InviteButton from './components/InviteButton';
 import { useWakeLock } from 'react-screen-wake-lock';
 
+globalThis[Symbol.for("FP_PRESET_ENV")] = {
+  FP_STACK: "*",
+  FP_DEBUG: "*",
+};
+
 function App() {
   const instruments = ['Kick', 'Snare', 'Hi-hat', 'Tom', 'Clap'];
   const { jamId } = useParams();
@@ -49,7 +54,7 @@ function App() {
   //////////////////////////////////////////////////////////////////////////////
   // Construct the database name based on the jamId
   const firstPathSegment = document.location.pathname.split('/')[1];
-  const baseDbName = 'blt' + (firstPathSegment ? '-' + firstPathSegment : '');
+  const baseDbName = 'bl8' + (firstPathSegment ? '-' + firstPathSegment : '');
   const dbName = isValidJamId ? `${baseDbName}-${sanitizedJamId}` : baseDbName;
 
   console.log("dbname", dbName);
@@ -59,7 +64,9 @@ function App() {
   
   useEffect(() => {
     const connectToDatabase = async () => {
-      const connection = await connect(database, `blx.${dbName}`);
+      console.log("connectToDatabase connecting to database", dbName);
+      const connection = await connect(database, `bl8.${dbName}`);
+      console.log("connectToDatabase connection did connect", connection);
       setConnectionUrl(connection.dashboardUrl.toString());
     };
     connectToDatabase();
